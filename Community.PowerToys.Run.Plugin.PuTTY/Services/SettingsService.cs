@@ -9,6 +9,8 @@ public sealed class SettingsService
 {
     private const string PluginName = "PuTTY";
     private const string PluginId = "1e79e695edd147bfb36f103fe5f9faef";
+    private const string ActionKeyword = "putty";
+    private const string Website = "https://github.com/PsychodelEKS/PowerToysRun-PuTTY";
     private const int CheckboxOptionType = 0;
     private const int TextboxOptionType = 2;
 
@@ -109,6 +111,11 @@ public sealed class SettingsService
             }
 
             plugin["IsGlobal"] = settings.EnableGlobalResults;
+            plugin["Id"] = PluginId;
+            plugin["Name"] = PluginName;
+            plugin["ActionKeyword"] = ActionKeyword;
+            plugin["Author"] = "PsychodelEKS";
+            plugin["Website"] = Website;
 
             if (plugin["AdditionalOptions"] is not JsonArray additionalOptions)
             {
@@ -165,7 +172,7 @@ public sealed class SettingsService
             .OfType<JsonObject>()
             .FirstOrDefault(plugin =>
                 string.Equals(plugin["Name"]?.GetValue<string>(), PluginName, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(plugin["Website"]?.GetValue<string>(), "https://github.com/PsychodelEKS/PowerToysRun-PuTTY", StringComparison.OrdinalIgnoreCase));
+                string.Equals(plugin["Website"]?.GetValue<string>(), Website, StringComparison.OrdinalIgnoreCase));
     }
 
     private static void SetTextboxOption(

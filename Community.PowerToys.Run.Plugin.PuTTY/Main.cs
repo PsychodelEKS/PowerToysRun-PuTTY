@@ -93,6 +93,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         _settingsService = new SettingsService();
         _settings = _settingsService.LoadSettings();
         _indexService = new SessionIndexService(_settingsService);
+        _settingsService.SavePowerToysPluginOptions(_settings);
         _ = RescanInBackgroundAsync(showNotification: false);
     }
 
@@ -193,6 +194,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         updatedSettings.EnableKiTTYSessions = GetBoolOption(settings, EnableKiTTYSessionsOptionKey, updatedSettings.EnableKiTTYSessions);
 
         SaveSettings(updatedSettings);
+        _settingsService.SavePowerToysPluginOptions(_settings);
         _ = RescanInBackgroundAsync(showNotification: false);
     }
 

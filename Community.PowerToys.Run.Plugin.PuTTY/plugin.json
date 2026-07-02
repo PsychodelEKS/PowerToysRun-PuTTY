@@ -5,7 +5,7 @@
   "IsGlobal": false,
   "Name": "PuTTY",
   "Author": "PsychodelEKS",
-  "Version": "0.1.0",
+  "Version": "0.1.1",
   "Language": "csharp",
   "Website": "https://github.com/PsychodelEKS/PowerToysRun-PuTTY",
   "ExecuteFileName": "Community.PowerToys.Run.Plugin.PuTTY.dll",
