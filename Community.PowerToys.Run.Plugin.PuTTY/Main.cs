@@ -23,6 +23,8 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
     public const string KiTTYExecutablePathOptionKey = "kittyExecutablePath";
     public const string EnablePuTTYSessionsOptionKey = "enablePuTTYSessions";
     public const string EnableKiTTYSessionsOptionKey = "enableKiTTYSessions";
+    public const string EnableFileSessionsOptionKey = "enableFileSessions";
+    public const string FileSessionsDirectoryOptionKey = "fileSessionsDirectory";
 
     private PluginInitContext? _context;
     private SettingsService? _settingsService;
@@ -77,6 +79,23 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
                     DisplayLabel = "Enable KiTTY sessions",
                     DisplayDescription = @"Read sessions from HKCU\Software\9bis.com\KiTTY\Sessions.",
                     Value = _settings.EnableKiTTYSessions,
+                },
+                new()
+                {
+                    PluginOptionType = PluginAdditionalOption.AdditionalOptionType.Checkbox,
+                    Key = EnableFileSessionsOptionKey,
+                    DisplayLabel = "Enable file sessions",
+                    DisplayDescription = "Read session files from a configured directory. Relative paths are resolved from the KiTTY executable directory.",
+                    Value = _settings.EnableFileSessions,
+                },
+                new()
+                {
+                    PluginOptionType = PluginAdditionalOption.AdditionalOptionType.Textbox,
+                    Key = FileSessionsDirectoryOptionKey,
+                    DisplayLabel = "File sessions directory",
+                    DisplayDescription = @"Folder with session files, for example T:\Apps\KiTTY\Sessions or Sessions relative to kitty.exe.",
+                    TextValue = _settings.FileSessionsDirectory,
+                    PlaceholderText = "Sessions",
                 },
             ];
         }
@@ -192,6 +211,8 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         updatedSettings.KiTTYExecutablePath = GetTextOption(settings, KiTTYExecutablePathOptionKey, updatedSettings.KiTTYExecutablePath);
         updatedSettings.EnablePuTTYSessions = GetBoolOption(settings, EnablePuTTYSessionsOptionKey, updatedSettings.EnablePuTTYSessions);
         updatedSettings.EnableKiTTYSessions = GetBoolOption(settings, EnableKiTTYSessionsOptionKey, updatedSettings.EnableKiTTYSessions);
+        updatedSettings.EnableFileSessions = GetBoolOption(settings, EnableFileSessionsOptionKey, updatedSettings.EnableFileSessions);
+        updatedSettings.FileSessionsDirectory = GetTextOption(settings, FileSessionsDirectoryOptionKey, updatedSettings.FileSessionsDirectory);
 
         SaveSettings(updatedSettings);
         _settingsService.SavePowerToysPluginOptions(_settings);
@@ -295,7 +316,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
     {
         var subtitle = _indexService?.IsRescanRunning == true
             ? "Session rescan is already running."
-            : "Refresh PuTTY and KiTTY saved sessions in the background.";
+            : "Refresh registry and file-backed saved sessions in the background.";
 
         return new Result
         {
@@ -317,7 +338,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         return new Result
         {
             Title = "Open PuTTY settings",
-            SubTitle = "Edit executable paths and session sources.",
+            SubTitle = "Edit executable paths, registry sources, and file sessions.",
             QueryTextDisplay = query,
             IcoPath = _iconPath,
             Score = score,
@@ -395,9 +416,9 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
             {
                 Title = "PuTTY settings",
                 Width = 760,
-                Height = 360,
+                Height = 430,
                 MinWidth = 640,
-                MinHeight = 300,
+                MinHeight = 360,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 Content = new SettingsPanel(
                     _settings.Clone(),
@@ -415,11 +436,11 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         var executableProblem = GetExecutableProblem(entry.ClientKind);
         if (!string.IsNullOrWhiteSpace(executableProblem))
         {
-            return $"{executableProblem} Session: {entry.HostLabel}";
+            return $"{executableProblem} {entry.SourceLabel} session: {entry.HostLabel}";
         }
 
         var protocol = string.IsNullOrWhiteSpace(entry.Protocol) ? string.Empty : $" ({entry.Protocol})";
-        return $"{entry.ClientLabel}: {entry.HostLabel}{protocol}";
+        return $"{entry.ClientLabel} {entry.SourceLabel}: {entry.HostLabel}{protocol}";
     }
 
     private bool LaunchSession(SessionEntry entry)

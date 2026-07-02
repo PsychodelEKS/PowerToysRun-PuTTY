@@ -149,6 +149,19 @@ public sealed class SettingsService
                 "Enable KiTTY sessions",
                 "Read sessions from HKCU\\Software\\9bis.com\\KiTTY\\Sessions.",
                 settings.EnableKiTTYSessions);
+            SetCheckboxOption(
+                additionalOptions,
+                Main.EnableFileSessionsOptionKey,
+                "Enable file sessions",
+                "Read session files from a configured directory. Relative paths are resolved from the KiTTY executable directory.",
+                settings.EnableFileSessions);
+            SetTextboxOption(
+                additionalOptions,
+                Main.FileSessionsDirectoryOptionKey,
+                "File sessions directory",
+                "Folder with session files, for example T:\\Apps\\KiTTY\\Sessions or Sessions relative to kitty.exe.",
+                settings.FileSessionsDirectory,
+                "Sessions");
 
             File.WriteAllText(PowerToysRunSettingsPath, root.ToJsonString(JsonOptions));
         }

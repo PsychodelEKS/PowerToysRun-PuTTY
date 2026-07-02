@@ -10,8 +10,10 @@ public sealed class SettingsPanel : Wpf.UserControl
     private readonly Wpf.CheckBox _enableGlobalResults;
     private readonly Wpf.CheckBox _enablePuTTYSessions;
     private readonly Wpf.CheckBox _enableKiTTYSessions;
+    private readonly Wpf.CheckBox _enableFileSessions;
     private readonly Wpf.TextBox _puttyExecutablePath;
     private readonly Wpf.TextBox _kittyExecutablePath;
+    private readonly Wpf.TextBox _fileSessionsDirectory;
     private readonly Action<PuTTYSettings> _saveSettings;
     private readonly Func<Task<int?>> _rescanAsync;
 
@@ -41,6 +43,12 @@ public sealed class SettingsPanel : Wpf.UserControl
             IsChecked = settings.EnableKiTTYSessions,
             Margin = new Thickness(0, 0, 0, 8),
         };
+        _enableFileSessions = new Wpf.CheckBox
+        {
+            Content = "Enable file sessions",
+            IsChecked = settings.EnableFileSessions,
+            Margin = new Thickness(0, 0, 0, 8),
+        };
         _puttyExecutablePath = new Wpf.TextBox
         {
             Text = settings.PuTTYExecutablePath,
@@ -49,6 +57,11 @@ public sealed class SettingsPanel : Wpf.UserControl
         _kittyExecutablePath = new Wpf.TextBox
         {
             Text = settings.KiTTYExecutablePath,
+            MinWidth = 420,
+        };
+        _fileSessionsDirectory = new Wpf.TextBox
+        {
+            Text = settings.FileSessionsDirectory,
             MinWidth = 420,
         };
 
@@ -98,7 +111,7 @@ public sealed class SettingsPanel : Wpf.UserControl
 
         panel.Children.Add(new Wpf.TextBlock
         {
-            Text = @"This editor updates the same options shown in PowerToys Settings. Sessions are read from HKCU\Software\SimonTatham\PuTTY\Sessions and HKCU\Software\9bis.com\KiTTY\Sessions.",
+            Text = @"This editor updates the same options shown in PowerToys Settings. Registry sessions are read from HKCU\Software\SimonTatham\PuTTY\Sessions and HKCU\Software\9bis.com\KiTTY\Sessions. File sessions are read from the configured folder; relative paths are resolved from the KiTTY executable directory.",
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 12),
         });
@@ -107,6 +120,8 @@ public sealed class SettingsPanel : Wpf.UserControl
         panel.Children.Add(CreatePathRow("KiTTY executable", _kittyExecutablePath, "Select kitty.exe"));
         panel.Children.Add(_enablePuTTYSessions);
         panel.Children.Add(_enableKiTTYSessions);
+        panel.Children.Add(_enableFileSessions);
+        panel.Children.Add(CreateDirectoryRow("File sessions", _fileSessionsDirectory));
 
         root.Children.Add(panel);
         return root;
@@ -147,6 +162,41 @@ public sealed class SettingsPanel : Wpf.UserControl
         return root;
     }
 
+    private UIElement CreateDirectoryRow(string label, Wpf.TextBox textBox)
+    {
+        var root = new Wpf.Grid
+        {
+            Margin = new Thickness(0, 0, 0, 10),
+        };
+        root.ColumnDefinitions.Add(new Wpf.ColumnDefinition { Width = new GridLength(130) });
+        root.ColumnDefinitions.Add(new Wpf.ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        root.ColumnDefinitions.Add(new Wpf.ColumnDefinition { Width = GridLength.Auto });
+
+        var labelBlock = new Wpf.TextBlock
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        };
+        Wpf.Grid.SetColumn(labelBlock, 0);
+        root.Children.Add(labelBlock);
+
+        Wpf.Grid.SetColumn(textBox, 1);
+        root.Children.Add(textBox);
+
+        var browseButton = new Wpf.Button
+        {
+            Content = "Browse",
+            MinWidth = 80,
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        browseButton.Click += (_, _) => BrowseDirectory(textBox);
+        Wpf.Grid.SetColumn(browseButton, 2);
+        root.Children.Add(browseButton);
+
+        return root;
+    }
+
     private static void BrowseExecutable(Wpf.TextBox target, string title)
     {
         using var dialog = new Forms.OpenFileDialog
@@ -162,6 +212,20 @@ public sealed class SettingsPanel : Wpf.UserControl
         }
     }
 
+    private static void BrowseDirectory(Wpf.TextBox target)
+    {
+        using var dialog = new Forms.FolderBrowserDialog
+        {
+            Description = "Select sessions folder",
+            UseDescriptionForTitle = true,
+        };
+
+        if (dialog.ShowDialog() == Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+        {
+            target.Text = dialog.SelectedPath;
+        }
+    }
+
     private void Save()
     {
         _saveSettings(new PuTTYSettings
@@ -169,8 +233,10 @@ public sealed class SettingsPanel : Wpf.UserControl
             EnableGlobalResults = _enableGlobalResults.IsChecked == true,
             EnablePuTTYSessions = _enablePuTTYSessions.IsChecked == true,
             EnableKiTTYSessions = _enableKiTTYSessions.IsChecked == true,
+            EnableFileSessions = _enableFileSessions.IsChecked == true,
             PuTTYExecutablePath = _puttyExecutablePath.Text.Trim(),
             KiTTYExecutablePath = _kittyExecutablePath.Text.Trim(),
+            FileSessionsDirectory = _fileSessionsDirectory.Text.Trim(),
         });
     }
 }

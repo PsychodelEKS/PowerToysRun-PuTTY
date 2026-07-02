@@ -2,12 +2,13 @@
 
 PowerToys Run plugin for opening saved PuTTY and KiTTY sessions.
 
-Current version: `0.1.1`.
+Current version: `0.1.2`.
 
 ## Features
 
 - Reads PuTTY sessions from `HKCU\Software\SimonTatham\PuTTY\Sessions`.
 - Reads KiTTY sessions from `HKCU\Software\9bis.com\KiTTY\Sessions`.
+- Reads file-backed KiTTY/PuTTY-style sessions from a configured folder, such as `Sessions` next to `kitty.exe`.
 - Uses `putty <query>` to search and launch saved sessions.
 - Launches PuTTY or KiTTY with `-load <session>`.
 - Supports separate executable paths for `putty.exe` and `kitty.exe`.
@@ -61,7 +62,7 @@ putty settings
 putty rescan
 ```
 
-`putty settings` opens a small editor for executable paths and source toggles. `putty rescan` refreshes the session index in the background and shows a notification when it finishes.
+`putty settings` opens a small editor for executable paths, registry source toggles, and the file sessions folder. `putty rescan` refreshes the session index in the background and shows a notification when it finishes.
 
 The context menu supports:
 
@@ -80,6 +81,8 @@ Available settings:
 - `KiTTY executable path`: path to `kitty.exe`, or `kitty.exe` if available in `PATH`.
 - `Enable PuTTY sessions`: read PuTTY registry sessions.
 - `Enable KiTTY sessions`: read KiTTY registry sessions.
+- `Enable file sessions`: read session files from a configured folder.
+- `File sessions directory`: absolute path to a sessions folder, or a relative path such as `Sessions`. Relative paths are resolved from the KiTTY executable directory first, then the PuTTY executable directory.
 - `Include in global result`: let sessions appear outside the `putty` keyword.
 
 The plugin stores its own settings and cache outside the installed plugin folder:

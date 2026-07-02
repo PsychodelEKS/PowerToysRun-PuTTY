@@ -6,6 +6,10 @@ public sealed class SessionEntry
 
     public required ClientKind ClientKind { get; init; }
 
+    public SessionSourceKind SourceKind { get; init; }
+
+    public string SourcePath { get; init; } = string.Empty;
+
     public string HostName { get; init; } = string.Empty;
 
     public string UserName { get; init; } = string.Empty;
@@ -17,6 +21,8 @@ public sealed class SessionEntry
     public required DateTimeOffset IndexedAt { get; init; }
 
     public string ClientLabel => ClientKind == ClientKind.KiTTY ? "KiTTY" : "PuTTY";
+
+    public string SourceLabel => SourceKind == SessionSourceKind.File ? "file" : "registry";
 
     public string HostLabel
     {

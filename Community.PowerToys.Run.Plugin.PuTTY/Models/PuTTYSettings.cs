@@ -12,6 +12,10 @@ public sealed class PuTTYSettings
 
     public bool EnableKiTTYSessions { get; set; } = true;
 
+    public bool EnableFileSessions { get; set; } = true;
+
+    public string FileSessionsDirectory { get; set; } = "Sessions";
+
     public static PuTTYSettings CreateDefault()
     {
         return new PuTTYSettings();
@@ -26,6 +30,8 @@ public sealed class PuTTYSettings
             KiTTYExecutablePath = KiTTYExecutablePath,
             EnablePuTTYSessions = EnablePuTTYSessions,
             EnableKiTTYSessions = EnableKiTTYSessions,
+            EnableFileSessions = EnableFileSessions,
+            FileSessionsDirectory = FileSessionsDirectory,
         };
     }
 }
