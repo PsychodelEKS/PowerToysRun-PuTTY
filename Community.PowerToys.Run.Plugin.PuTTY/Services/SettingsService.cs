@@ -9,7 +9,7 @@ public sealed class SettingsService
 {
     private const string PluginName = "PuTTY";
     private const string PluginId = "1e79e695edd147bfb36f103fe5f9faef";
-    private const string ActionKeyword = "putty";
+    private const string DefaultActionKeyword = "putty";
     private const string Website = "https://github.com/PsychodelEKS/PowerToysRun-PuTTY";
     private const int CheckboxOptionType = 0;
     private const int TextboxOptionType = 2;
@@ -111,9 +111,10 @@ public sealed class SettingsService
             }
 
             plugin["IsGlobal"] = settings.EnableGlobalResults;
+            var previousPluginId = plugin["Id"]?.GetValue<string>() ?? string.Empty;
             plugin["Id"] = PluginId;
             plugin["Name"] = PluginName;
-            plugin["ActionKeyword"] = ActionKeyword;
+            PreserveOrMigrateActionKeyword(plugin, previousPluginId);
             plugin["Author"] = "PsychodelEKS";
             plugin["Website"] = Website;
 
@@ -186,6 +187,23 @@ public sealed class SettingsService
             .FirstOrDefault(plugin =>
                 string.Equals(plugin["Name"]?.GetValue<string>(), PluginName, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(plugin["Website"]?.GetValue<string>(), Website, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void PreserveOrMigrateActionKeyword(JsonObject plugin, string previousPluginId)
+    {
+        var currentActionKeyword = plugin["ActionKeyword"]?.GetValue<string>() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(currentActionKeyword))
+        {
+            plugin["ActionKeyword"] = DefaultActionKeyword;
+            return;
+        }
+
+        var isMigratingOldPlugin = !string.Equals(previousPluginId, PluginId, StringComparison.OrdinalIgnoreCase);
+        if (isMigratingOldPlugin &&
+            string.Equals(currentActionKeyword, "ssh", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin["ActionKeyword"] = DefaultActionKeyword;
+        }
     }
 
     private static void SetTextboxOption(
