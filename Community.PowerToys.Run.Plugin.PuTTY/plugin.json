@@ -1,0 +1,15 @@
+{
+  "ID": "1e79e695edd147bfb36f103fe5f9faef",
+  "ActionKeyword": "putty",
+  "Disabled": false,
+  "IsGlobal": false,
+  "Name": "PuTTY",
+  "Author": "PsychodelEKS",
+  "Version": "0.1.0",
+  "Language": "csharp",
+  "Website": "https://github.com/PsychodelEKS/PowerToysRun-PuTTY",
+  "ExecuteFileName": "Community.PowerToys.Run.Plugin.PuTTY.dll",
+  "IcoPathDark": "Images\\PuTTY.dark.png",
+  "IcoPathLight": "Images\\PuTTY.light.png",
+  "DynamicLoading": true
+}
