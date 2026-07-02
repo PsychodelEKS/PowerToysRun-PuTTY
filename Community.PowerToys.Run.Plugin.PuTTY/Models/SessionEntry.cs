@@ -10,6 +10,8 @@ public sealed class SessionEntry
 
     public string SourcePath { get; init; } = string.Empty;
 
+    public string IconPath { get; init; } = string.Empty;
+
     public string HostName { get; init; } = string.Empty;
 
     public string UserName { get; init; } = string.Empty;

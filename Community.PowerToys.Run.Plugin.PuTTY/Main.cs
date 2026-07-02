@@ -292,7 +292,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
             Title = entry.Name,
             SubTitle = GetSessionSubtitle(entry),
             QueryTextDisplay = query,
-            IcoPath = _iconPath,
+            IcoPath = GetResultIconPath(entry),
             Score = score,
             ContextData = entry,
             Action = _ => LaunchSession(entry),
@@ -496,6 +496,147 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         return clientKind == ClientKind.KiTTY
             ? _settings.KiTTYExecutablePath
             : _settings.PuTTYExecutablePath;
+    }
+
+    private string GetResultIconPath(SessionEntry entry)
+    {
+        var executablePath = NormalizeExecutablePath(GetExecutablePath(entry.ClientKind));
+        var sessionIconPath = ResolveIconPath(
+            entry.IconPath,
+            GetDirectoryName(entry.SourcePath),
+            GetDirectoryName(executablePath));
+        if (!string.IsNullOrWhiteSpace(sessionIconPath))
+        {
+            return sessionIconPath;
+        }
+
+        var executableIconPath = ResolveExecutablePath(executablePath);
+        return string.IsNullOrWhiteSpace(executableIconPath) ? _iconPath : executableIconPath;
+    }
+
+    private static string ResolveIconPath(string iconPath, params string[] baseDirectories)
+    {
+        iconPath = NormalizeExecutablePath(TryDecode(iconPath.Trim()));
+        if (string.IsNullOrWhiteSpace(iconPath))
+        {
+            return string.Empty;
+        }
+
+        iconPath = Environment.ExpandEnvironmentVariables(iconPath);
+        var withoutIconIndex = StripIconIndex(iconPath);
+
+        foreach (var candidate in EnumerateIconCandidates(iconPath, withoutIconIndex, baseDirectories))
+        {
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static IEnumerable<string> EnumerateIconCandidates(
+        string iconPath,
+        string withoutIconIndex,
+        IEnumerable<string> baseDirectories)
+    {
+        yield return iconPath;
+        if (!string.Equals(withoutIconIndex, iconPath, StringComparison.Ordinal))
+        {
+            yield return withoutIconIndex;
+        }
+
+        var iconFileName = Path.GetFileName(withoutIconIndex);
+
+        foreach (var baseDirectory in baseDirectories.Where(directory => !string.IsNullOrWhiteSpace(directory)))
+        {
+            if (!Path.IsPathRooted(iconPath))
+            {
+                yield return Path.Combine(baseDirectory, iconPath);
+                yield return Path.Combine(baseDirectory, withoutIconIndex);
+            }
+
+            if (!string.IsNullOrWhiteSpace(iconFileName))
+            {
+                yield return Path.Combine(baseDirectory, iconFileName);
+                yield return Path.Combine(baseDirectory, "Ico", iconFileName);
+            }
+        }
+    }
+
+    private static string ResolveExecutablePath(string executablePath)
+    {
+        executablePath = NormalizeExecutablePath(executablePath);
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            return string.Empty;
+        }
+
+        if (Path.IsPathRooted(executablePath))
+        {
+            return File.Exists(executablePath) ? executablePath : string.Empty;
+        }
+
+        var pathEnvironment = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        foreach (var directory in pathEnvironment.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
+            {
+                var candidate = Path.Combine(directory.Trim(), executablePath);
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string StripIconIndex(string iconPath)
+    {
+        var commaIndex = iconPath.LastIndexOf(",", StringComparison.Ordinal);
+        if (commaIndex < 0 || commaIndex == iconPath.Length - 1)
+        {
+            return iconPath;
+        }
+
+        var suffix = iconPath[(commaIndex + 1)..];
+        return int.TryParse(suffix, out _) ? iconPath[..commaIndex] : iconPath;
+    }
+
+    private static string TryDecode(string value)
+    {
+        try
+        {
+            return Uri.UnescapeDataString(value);
+        }
+        catch
+        {
+            return value;
+        }
+    }
+
+    private static string GetDirectoryName(string path)
+    {
+        path = NormalizeExecutablePath(path);
+        if (string.IsNullOrWhiteSpace(path) || !Path.IsPathRooted(path))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return Path.GetDirectoryName(path) ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private static string GetClientLabel(ClientKind clientKind)
