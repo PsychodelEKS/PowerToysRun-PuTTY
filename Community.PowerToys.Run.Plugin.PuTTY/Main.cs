@@ -273,7 +273,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         if (isKeywordQuery || !string.IsNullOrWhiteSpace(search))
         {
             results.AddRange(_indexService.Search(search)
-                .Select(match => CreateSessionResult(match, search)));
+                .Select(CreateSessionResult));
         }
 
         if (isKeywordQuery)
@@ -286,14 +286,14 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
             .ToList();
     }
 
-    private Result CreateSessionResult(SearchMatch match, string query)
+    private Result CreateSessionResult(SearchMatch match)
     {
         var entry = match.Entry;
         return new Result
         {
             Title = entry.Name,
             SubTitle = GetSessionSubtitle(entry),
-            QueryTextDisplay = query,
+            QueryTextDisplay = entry.Name,
             IcoPath = GetResultIconPath(entry),
             Score = match.Score,
             TitleHighlightData = match.TitleHighlightData,
@@ -325,7 +325,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         {
             Title = "Rescan PuTTY sessions",
             SubTitle = subtitle,
-            QueryTextDisplay = query,
+            QueryTextDisplay = RescanCommand,
             IcoPath = _iconPath,
             Score = score,
             Action = context =>
@@ -342,7 +342,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         {
             Title = "Open PuTTY settings",
             SubTitle = "Edit executable paths, registry sources, and file sessions.",
-            QueryTextDisplay = query,
+            QueryTextDisplay = SettingsCommand,
             IcoPath = _iconPath,
             Score = score,
             Action = _ =>

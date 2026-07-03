@@ -2,7 +2,7 @@
 
 PowerToys Run plugin for opening saved PuTTY and KiTTY sessions.
 
-Current version: `0.1.6`.
+Current version: `0.1.7`.
 
 ## Features
 

@@ -1,3 +1,4 @@
+using System.Text;
 using Community.PowerToys.Run.Plugin.PuTTY.Models;
 using Wox.Infrastructure;
 
@@ -105,6 +106,33 @@ public sealed class SessionIndexService
 
     private static MatchResult FuzzySearch(string query, string text)
     {
+        var match = FuzzyMatch(query, text);
+        if (match.Score > 0 || string.IsNullOrWhiteSpace(text))
+        {
+            return match;
+        }
+
+        var compactText = CompactSearchText(text);
+        if (compactText.Text.Length == text.Length)
+        {
+            return match;
+        }
+
+        var compactMatch = FuzzyMatch(query, compactText.Text);
+        if (compactMatch.Score <= 0 || compactMatch.MatchData.Count == 0)
+        {
+            return match;
+        }
+
+        return new MatchResult(
+            compactMatch.Success,
+            compactMatch.SearchPrecision,
+            compactMatch.MatchData.Select(index => compactText.IndexMap[index]).ToList(),
+            compactMatch.RawScore);
+    }
+
+    private static MatchResult FuzzyMatch(string query, string text)
+    {
         if (StringMatcher.Instance is not null)
         {
             return StringMatcher.Instance.FuzzyMatch(query, text);
@@ -114,5 +142,26 @@ public sealed class SessionIndexService
             .FuzzyMatch(query, text);
     }
 
+    private static CompactSearchTextResult CompactSearchText(string text)
+    {
+        var builder = new StringBuilder(text.Length);
+        var indexMap = new List<int>(text.Length);
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (!char.IsLetterOrDigit(text[i]))
+            {
+                continue;
+            }
+
+            builder.Append(text[i]);
+            indexMap.Add(i);
+        }
+
+        return new CompactSearchTextResult(builder.ToString(), indexMap);
+    }
+
     private sealed record SearchScore(int Score, IList<int>? TitleHighlightData);
+
+    private sealed record CompactSearchTextResult(string Text, List<int> IndexMap);
 }
