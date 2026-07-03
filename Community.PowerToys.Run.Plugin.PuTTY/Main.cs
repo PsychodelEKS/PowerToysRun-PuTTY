@@ -272,7 +272,7 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
         if (isKeywordQuery || !string.IsNullOrWhiteSpace(search))
         {
             results.AddRange(_indexService.Search(search)
-                .Select(match => CreateSessionResult(match.Entry, match.Score, search)));
+                .Select(match => CreateSessionResult(match, search)));
         }
 
         if (isKeywordQuery)
@@ -285,15 +285,17 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
             .ToList();
     }
 
-    private Result CreateSessionResult(SessionEntry entry, int score, string query)
+    private Result CreateSessionResult(SearchMatch match, string query)
     {
+        var entry = match.Entry;
         return new Result
         {
             Title = entry.Name,
             SubTitle = GetSessionSubtitle(entry),
             QueryTextDisplay = query,
             IcoPath = GetResultIconPath(entry),
-            Score = score,
+            Score = match.Score,
+            TitleHighlightData = match.TitleHighlightData,
             ContextData = entry,
             Action = _ => LaunchSession(entry),
         };

@@ -5,4 +5,6 @@ public sealed class SearchMatch
     public required SessionEntry Entry { get; init; }
 
     public required int Score { get; init; }
+
+    public IList<int>? TitleHighlightData { get; init; }
 }

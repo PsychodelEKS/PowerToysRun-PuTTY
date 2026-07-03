@@ -2,7 +2,7 @@
 
 PowerToys Run plugin for opening saved PuTTY and KiTTY sessions.
 
-Current version: `0.1.4`.
+Current version: `0.1.5`.
 
 ## Features
 
@@ -11,6 +11,7 @@ Current version: `0.1.4`.
 - Reads file-backed KiTTY/PuTTY-style sessions from a configured folder, such as `Sessions` next to `kitty.exe`.
 - Shows a session-specific icon when the saved session defines one; otherwise uses the configured PuTTY or KiTTY executable icon.
 - Uses `putty <query>` to search and launch saved sessions.
+- Uses the same PowerToys Run fuzzy matcher as built-in plugins.
 - Launches PuTTY or KiTTY with `-load <session>`.
 - Supports separate executable paths for `putty.exe` and `kitty.exe`.
 - Supports `putty settings` and `putty rescan` commands.

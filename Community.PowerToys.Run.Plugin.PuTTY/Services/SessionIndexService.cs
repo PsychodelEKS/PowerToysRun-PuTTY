@@ -1,4 +1,5 @@
 using Community.PowerToys.Run.Plugin.PuTTY.Models;
+using Wox.Infrastructure;
 
 namespace Community.PowerToys.Run.Plugin.PuTTY.Services;
 
@@ -54,13 +55,18 @@ public sealed class SessionIndexService
         var matches = new List<SearchMatch>();
         foreach (var entry in _entries)
         {
-            var score = Score(entry, query);
-            if (score <= 0)
+            var match = Score(entry, query);
+            if (match.Score <= 0)
             {
                 continue;
             }
 
-            matches.Add(new SearchMatch { Entry = entry, Score = score });
+            matches.Add(new SearchMatch
+            {
+                Entry = entry,
+                Score = match.Score,
+                TitleHighlightData = match.TitleHighlightData,
+            });
         }
 
         return matches
@@ -72,36 +78,41 @@ public sealed class SessionIndexService
             .ToList();
     }
 
-    private static int Score(SessionEntry entry, string query)
+    private static SearchScore Score(SessionEntry entry, string query)
     {
-        if (entry.Name.Equals(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 1000;
-        }
+        var nameMatch = FuzzySearch(query, entry.Name);
+        var bestScore = new SearchScore(nameMatch.Score, nameMatch.MatchData);
 
-        if (entry.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 900;
-        }
+        bestScore = Max(bestScore, FuzzySearch(query, entry.HostName), weight: 2);
+        bestScore = Max(bestScore, FuzzySearch(query, entry.UserName), weight: 2);
+        bestScore = Max(bestScore, FuzzySearch(query, entry.HostLabel), weight: 2);
+        bestScore = Max(bestScore, FuzzySearch(query, entry.Protocol), weight: 3);
+        bestScore = Max(bestScore, FuzzySearch(query, entry.ClientLabel), weight: 3);
 
-        if (entry.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 750;
-        }
-
-        if (entry.HostName.StartsWith(query, StringComparison.OrdinalIgnoreCase) ||
-            entry.UserName.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 700;
-        }
-
-        if (entry.HostLabel.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            entry.Protocol.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            entry.ClientLabel.Contains(query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 550;
-        }
-
-        return 0;
+        return bestScore;
     }
+
+    private static SearchScore Max(SearchScore current, MatchResult match, int weight)
+    {
+        var weightedScore = match.Score / weight;
+        if (weightedScore <= current.Score)
+        {
+            return current;
+        }
+
+        return new SearchScore(weightedScore, TitleHighlightData: null);
+    }
+
+    private static MatchResult FuzzySearch(string query, string text)
+    {
+        if (StringMatcher.Instance is not null)
+        {
+            return StringMatcher.Instance.FuzzyMatch(query, text);
+        }
+
+        return new StringMatcher { UserSettingSearchPrecision = StringMatcher.SearchPrecisionScore.Regular }
+            .FuzzyMatch(query, text);
+    }
+
+    private sealed record SearchScore(int Score, IList<int>? TitleHighlightData);
 }
