@@ -12,7 +12,7 @@ using Wox.Plugin;
 
 namespace Community.PowerToys.Run.Plugin.PuTTY;
 
-public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider, IReloadable, IDisposable, IDelayedExecutionPlugin
+public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider, IReloadable, IDisposable
 {
     private const string DefaultActionKeyword = "putty";
     private const string RescanCommand = "rescan";
@@ -118,11 +118,6 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
     }
 
     public List<Result> Query(Query query)
-    {
-        return QueryInternal(query);
-    }
-
-    public List<Result> Query(Query query, bool delayedExecution)
     {
         return QueryInternal(query);
     }
