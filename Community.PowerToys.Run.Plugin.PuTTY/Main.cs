@@ -136,7 +136,6 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
                 Title = "Open",
                 Glyph = "\xE8A7",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
-                AcceleratorKey = Key.Enter,
                 Action = _ => LaunchSession(entry),
             },
             new ContextMenuResult
@@ -458,11 +457,22 @@ public sealed class Main : IPlugin, IPluginI18n, IContextMenu, ISettingProvider,
 
         try
         {
+            var resolvedExecutablePath = ResolveExecutablePath(executablePath);
+            var launchExecutablePath = string.IsNullOrWhiteSpace(resolvedExecutablePath)
+                ? executablePath
+                : resolvedExecutablePath;
             var startInfo = new ProcessStartInfo
             {
-                FileName = executablePath,
+                FileName = launchExecutablePath,
                 UseShellExecute = false,
             };
+
+            var workingDirectory = GetDirectoryName(launchExecutablePath);
+            if (!string.IsNullOrWhiteSpace(workingDirectory) && Directory.Exists(workingDirectory))
+            {
+                startInfo.WorkingDirectory = workingDirectory;
+            }
+
             startInfo.ArgumentList.Add("-load");
             startInfo.ArgumentList.Add(entry.Name);
 
